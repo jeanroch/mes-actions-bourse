@@ -16,7 +16,7 @@ func main() {
 	flagVersion := flag.Bool("ver", false, "Print version and exit\n")
 	flagIndice := flag.Bool("cac", false, "Get the values for few index : CAC40, SBF120, Nasdaq, S&P500, Bitcoin, Ethereum\n")
 	flagSymbols := flag.String("sym", "", "Need to provide a list of symbols separated by a comma, for example BTC-USD,BNP.PA,LI.PA,etc...\n")
-	flagXLS := flag.String("xls", "", "Need to provide an xlsx file with the stock options to request\nThe First row of the file must be column title from this 4: Symbol, CPU (PRU), Quantity, Target\nIt need at least the column Symbol\n")
+	flagXLS := flag.String("xls", "", "Need to provide an xlsx file with the stock options to request\nThe First row of the file must be column title from this 4: Symbol, Price (PRU), Quantity, Target\nIt need at least the column Symbol\n")
 
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stdout, "\nThis small app is requesting some stock option values from the site finance.yahoo.com\n\n")
@@ -38,7 +38,7 @@ func main() {
 	case *flagXLS != "":
 		sheet := "Sheet1"
 		// headers := []string{"symbol", "pru", "nombre", "objectif"}
-		headers := []string{"symbol", "price", "pru", "quantity", "target"}
+		headers := []string{"symbol", "price", "quantity", "target"}
 		symbols, _ = GetStockFromXLS(*flagXLS, sheet, headers)
 	}
 

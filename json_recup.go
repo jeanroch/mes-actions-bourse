@@ -41,8 +41,10 @@ func GetDataFromURL(symbols string) []byte {
 	urlBase := "https://query2.finance.yahoo.com/v7/finance/quote?lang=en-US&region=FR&corsDomain=finance.yahoo.com"
 	urlFields := "symbol,longName,shortName,fiftyDayAverage,fiftyTwoWeekRange,regularMarketChange,regularMarketChangePercent,regularMarketDayRange,regularMarketPreviousClose,regularMarketPrice,regularMarketTime,twoHundredDayAverage"
 	urlTarget := urlBase + "&fields=" + urlFields + "&symbols=" + symbols
+
+	//urlTarget := "http://nadev/bourse_resu.json"
+
 	/*
-		urlTarget := "http://nadev/bourse_resu.json"
 		fmt.Println("Target URL requested", urlTarget)
 		fmt.Println("Symbols are", symbols)
 	*/

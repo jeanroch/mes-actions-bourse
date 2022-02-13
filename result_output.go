@@ -29,6 +29,9 @@ func printStockTable(stockArr []StockInfo) {
 		//colorCyan = ""
 	}
 
+	dateRequest := time.Now()
+	fmt.Println("Date request:", dateRequest.Format("02 Jan 2006 15:04"))
+
 	// configure the tabwriter to print all in a clean table
 	// output, minwidth, tabwidth, padding, padchar, flags
 	tabw := tabwriter.NewWriter(os.Stdout, 0, 0, 1, ' ', 0)
