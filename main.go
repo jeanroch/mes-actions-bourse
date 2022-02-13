@@ -6,12 +6,12 @@ import (
 	"os"
 )
 
-const version = "v0.1 2022-02-13"
+const version = "v0.2 2022-02-14"
 
 func main() {
 
 	var symbols string = "^FCHI,^SBF120,^IXIC,^GSPC,BTC-USD,ETH-USD" // list of symbols separated by a comma , (set by from the cli)
-	//var dataXls [][]string                                           // data from xls file if given from the cli
+	var dataXls [][]string                                           // data from xls file if given from the cli
 
 	flagVersion := flag.Bool("ver", false, "Print version and exit\n")
 	flagIndice := flag.Bool("cac", false, "Get the values for few index : CAC40, SBF120, Nasdaq, S&P500, Bitcoin, Ethereum\n")
@@ -39,14 +39,19 @@ func main() {
 		sheet := "Sheet1"
 		// headers := []string{"symbol", "pru", "nombre", "objectif"}
 		headers := []string{"symbol", "price", "quantity", "target"}
-		symbols, _ = GetStockFromXLS(*flagXLS, sheet, headers)
+		symbols, dataXls = GetStockFromXLS(*flagXLS, sheet, headers)
 	}
 
 	fmt.Println("")
 
 	dataJson := GetDataFromURL(symbols)
 	dataInternet := GetDataFromJSON(dataJson)
-	printStockTable(dataInternet)
+
+	if len(dataXls) > 0 {
+		printCustomTable(dataInternet, dataXls)
+	} else {
+		printDefaultTable(dataInternet)
+	}
 
 	fmt.Println("")
 }
