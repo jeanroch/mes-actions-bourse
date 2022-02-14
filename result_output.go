@@ -24,6 +24,7 @@ func setColor(word string, color string) string {
 	colorCyan := "\x1b[0036m"
 	colorRedBold := "\x1b[0041m"
 	colorGreenBold := "\x1b[0042m"
+	colorYellowBold := "\x1b[0043m"
 
 	if runtime.GOOS == "windows" {
 		colorDefault = ""
@@ -35,6 +36,7 @@ func setColor(word string, color string) string {
 		colorCyan = ""
 		colorRedBold = ""
 		colorGreenBold = ""
+		colorYellowBold = ""
 	}
 
 	switch {
@@ -56,6 +58,8 @@ func setColor(word string, color string) string {
 		result = colorRedBold + word
 	case color == "greenbold":
 		result = colorGreenBold + word
+	case color == "yellowbold":
+		result = colorYellowBold + word
 	}
 	return result
 }
@@ -85,18 +89,21 @@ func reduceName(oldName string) string {
 // print the table if custom data are given from the xlsx
 func printCustomTable(stockArr []StockInfo, dataXls [][]string) {
 
-	var myPrice float64
-	var myQuantity float64
-	var myTarget float64
-	var myGains float64
-	var myTargetDiff float64
-	var myChangePercent float64
+	myPrice := 0.0
+	myQuantity := 0.0
+	myTarget := 0.0
+	myGains := 0.0
+	myTargetDiff := 0.0
+	myChangePercent := 0.0
+
+	totalPrice := 0.0
+	totalMyGains := 0.0
+	totalMyChangePercent := 0.0
+	totalMyPrice := 0.0
+
 	var xlsInfoPresent bool
 	var err error
 	var symbol string
-	//var totalMyGains float64
-	//var totalMyChangePercent float64
-	//var totalMyPrice float64
 
 	dateRequest := time.Now()
 	fmt.Println("Date request:", dateRequest.Format("02 Jan 2006 15:04"))
@@ -168,6 +175,10 @@ func printCustomTable(stockArr []StockInfo, dataXls [][]string) {
 			myTargetDiff = myTarget - val.RegularMarketPrice
 			myGains = (val.RegularMarketPrice - myPrice) * myQuantity
 
+			totalPrice = totalPrice + (val.RegularMarketPrice * myQuantity)
+			totalMyPrice = totalMyPrice + (myPrice * myQuantity)
+			totalMyGains = totalMyGains + myGains
+
 			symbol = strings.ToLower(val.Symbol)
 			switch {
 			case myGains < 0.0:
@@ -227,7 +238,26 @@ func printCustomTable(stockArr []StockInfo, dataXls [][]string) {
 		)
 	}
 
-	// print total
+	// print total row
+	totalMyChangePercent = (totalMyGains / totalMyPrice) * 100
+	symbol = setColor("-", "yellowbold")
+	name := "Total sum"
+	fmt.Fprintf(tabw,
+		"%s \t %s \t %.2f \t %.2f \t %.2f \t %.2f \t %s \t %s \t %s \t %s \t %s \t %s %s\n",
+		symbol,
+		name,
+		totalPrice,
+		totalMyPrice,
+		totalMyChangePercent,
+		totalMyGains,
+		"-",
+		"-",
+		"-",
+		"-",
+		"-",
+		dateRequest.Format("02 Jan 15:04"),
+		setColor("", "default"),
+	)
 
 	fmt.Fprint(tabw, setColor("", "default"))
 }
