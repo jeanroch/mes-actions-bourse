@@ -117,11 +117,11 @@ func printCustomTable(stockArr []StockInfo, dataXls [][]string) {
 	headerSymbol := "Symbol"
 	headerShortName := "Name"
 	headerFiftyDayAverage := "50DayAvg"
-	headerRegularMarketChangePercent := "%DayChange"
+	headerRegularMarketChangePercent := "DayChange"
 	headerRegularMarketPrice := "Price"
 	headerRegularMarketTime := "UpdateTime"
 	headerTwoHundredDayAverage := "200DayAvg"
-	headerMyChangePercent := "%MyChange"
+	headerMyChangePercent := "MyChange"
 	headerMyGains := "MyGains"
 	headerMyPrice := "MyPrice"
 	headerMyTarget := "MyTarget"
@@ -220,41 +220,62 @@ func printCustomTable(stockArr []StockInfo, dataXls [][]string) {
 		name := reduceName(val.ShortName)
 		dateInfo := time.Unix(int64(val.RegularMarketTime), 0)
 
-		fmt.Fprintf(tabw,
-			"%s \t %s \t %.2f \t %.2f \t %.2f \t %.2f \t %.2f \t %.2f \t %.2f \t %.2f \t %.2f \t %v %s\n",
-			symbol,
-			name,
-			val.RegularMarketPrice,
-			myPrice,
-			myChangePercent,
-			myGains,
-			myTarget,
-			myTargetDiff,
-			val.RegularMarketChangePercent,
-			val.TwoHundredDayAverage,
-			val.FiftyDayAverage,
-			dateInfo.Format("02 Jan 15:04"),
-			setColor("", "default"),
-		)
+		if myPrice > 0 && myQuantity > 0 {
+			// if there are data from the xls
+			fmt.Fprintf(tabw,
+				"%s \t %s \t %.2f \t %.2f \t %.2f%s \t %.2f \t %.2f \t %.2f \t %.2f%s \t %.2f \t %.2f \t %v %s\n",
+				symbol,
+				name,
+				val.RegularMarketPrice,
+				myPrice,
+				myChangePercent, "%",
+				myGains,
+				myTarget,
+				myTargetDiff,
+				val.RegularMarketChangePercent, "%",
+				val.TwoHundredDayAverage,
+				val.FiftyDayAverage,
+				dateInfo.Format("02 Jan 15:04"),
+				setColor("", "default"),
+			)
+		} else {
+			// if there is no data from the xls, we replace the output by "-"
+			fmt.Fprintf(tabw,
+				"%s \t %s \t %.2f \t %s \t %s \t %s \t %s \t %s \t %.2f%s \t %.2f \t %.2f \t %v %s\n",
+				symbol,
+				name,
+				val.RegularMarketPrice,
+				"--",
+				"--",
+				"--",
+				"--",
+				"--",
+				val.RegularMarketChangePercent, "%",
+				val.TwoHundredDayAverage,
+				val.FiftyDayAverage,
+				dateInfo.Format("02 Jan 15:04"),
+				setColor("", "default"),
+			)
+		}
 	}
 
 	// print total row
 	totalMyChangePercent = (totalMyGains / totalMyPrice) * 100
-	symbol = setColor("-", "yellowbold")
-	name := "Total sum"
+	symbol = setColor("--", "yellow")
+	name := "TOTAL SUM"
 	fmt.Fprintf(tabw,
-		"%s \t %s \t %.2f \t %.2f \t %.2f \t %.2f \t %s \t %s \t %s \t %s \t %s \t %s %s\n",
+		"%s \t %s \t %.2f \t %.2f \t %.2f%s \t %.2f \t %s \t %s \t %s \t %s \t %s \t %s %s\n",
 		symbol,
 		name,
 		totalPrice,
 		totalMyPrice,
-		totalMyChangePercent,
+		totalMyChangePercent, "%",
 		totalMyGains,
-		"-",
-		"-",
-		"-",
-		"-",
-		"-",
+		"--",
+		"--",
+		"--",
+		"--",
+		"--",
 		dateRequest.Format("02 Jan 15:04"),
 		setColor("", "default"),
 	)
@@ -275,13 +296,13 @@ func printDefaultTable(stockArr []StockInfo) {
 
 	// define a variable for each column name
 	//headerLongName := "LongName"
-	// headerRegularMarketChange := "Diff"
+	//headerRegularMarketChange := "Change"
 	headerSymbol := "Symbol"
 	headerShortName := "Name"
 	headerFiftyDayAverage := "50DayAvg"
 	headerFiftyTwoWeekHigh := "52WeekHigh"
 	headerFiftyTwoWeekLow := "52WeekLow"
-	headerRegularMarketChangePercent := "% Change"
+	headerRegularMarketChangePercent := "Change"
 	headerRegularMarketDayHigh := "DayHigh"
 	headerRegularMarketDayLow := "DayLow"
 	headerRegularMarketPreviousClose := "PrevClose"
@@ -327,13 +348,13 @@ func printDefaultTable(stockArr []StockInfo) {
 		dateInfo := time.Unix(int64(val.RegularMarketTime), 0)
 
 		fmt.Fprintf(tabw,
-			"%s \t %s \t %.2f \t %.2f \t %.2f \t %.2f \t %.2f \t %.2f \t %.2f \t %.2f \t %.2f \t %v %s\n",
+			"%s \t %s \t %.2f \t %.2f \t %.2f%s \t %.2f \t %.2f \t %.2f \t %.2f \t %.2f \t %.2f \t %v %s\n",
 			symbol,
 			name,
 			val.RegularMarketPrice,
 			val.RegularMarketPreviousClose,
 			//val.RegularMarketChange,
-			val.RegularMarketChangePercent,
+			val.RegularMarketChangePercent, "%",
 			val.RegularMarketDayLow,
 			val.RegularMarketDayHigh,
 			val.TwoHundredDayAverage,
