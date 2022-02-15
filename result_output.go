@@ -172,7 +172,7 @@ func printCustomTable(stockArr []StockInfo, dataXls [][]string) {
 		if xlsInfoPresent {
 			// calculation with the xls data
 			myChangePercent = ((val.RegularMarketPrice - myPrice) / myPrice) * 100
-			myTargetDiff = myTarget - val.RegularMarketPrice
+			myTargetDiff = ((val.RegularMarketPrice - myTarget) / val.RegularMarketPrice) * 100
 			myGains = (val.RegularMarketPrice - myPrice) * myQuantity
 
 			totalPrice = totalPrice + (val.RegularMarketPrice * myQuantity)
@@ -188,13 +188,13 @@ func printCustomTable(stockArr []StockInfo, dataXls [][]string) {
 			case myGains > 0.0:
 				symbol = setColor(val.Symbol, "green")
 			}
-			if myTargetDiff < 0.0 {
+			if myTargetDiff >= 0.0 {
 				symbol = setColor(val.Symbol, "greenbold")
 			}
-			if val.RegularMarketChangePercent < -4.0 {
+			if val.RegularMarketChangePercent <= -4.0 {
 				symbol = setColor(val.Symbol, "redbold")
 			}
-			if myChangePercent < -10.0 {
+			if myChangePercent <= -10.0 {
 				symbol = setColor(val.Symbol, "redbold")
 			}
 
@@ -223,7 +223,7 @@ func printCustomTable(stockArr []StockInfo, dataXls [][]string) {
 		if myPrice > 0 && myQuantity > 0 {
 			// if there are data from the xls
 			fmt.Fprintf(tabw,
-				"%s \t %s \t %.2f \t %.2f \t %.2f%s \t %.2f \t %.2f \t %.2f \t %.2f%s \t %.2f \t %.2f \t %v %s\n",
+				"%s \t %s \t %.2f \t %.2f \t %.2f%s \t %.2f \t %.2f \t %.2f%s \t %.2f%s \t %.2f \t %.2f \t %v %s\n",
 				symbol,
 				name,
 				val.RegularMarketPrice,
@@ -231,7 +231,7 @@ func printCustomTable(stockArr []StockInfo, dataXls [][]string) {
 				myChangePercent, "%",
 				myGains,
 				myTarget,
-				myTargetDiff,
+				myTargetDiff, "%",
 				val.RegularMarketChangePercent, "%",
 				val.TwoHundredDayAverage,
 				val.FiftyDayAverage,
@@ -245,11 +245,11 @@ func printCustomTable(stockArr []StockInfo, dataXls [][]string) {
 				symbol,
 				name,
 				val.RegularMarketPrice,
-				"--",
-				"--",
-				"--",
-				"--",
-				"--",
+				" --",
+				" --",
+				" --",
+				" --",
+				" --",
 				val.RegularMarketChangePercent, "%",
 				val.TwoHundredDayAverage,
 				val.FiftyDayAverage,
@@ -261,7 +261,7 @@ func printCustomTable(stockArr []StockInfo, dataXls [][]string) {
 
 	// print total row
 	totalMyChangePercent = (totalMyGains / totalMyPrice) * 100
-	symbol = setColor("--", "yellow")
+	symbol = setColor(" --", "yellow")
 	name := "TOTAL SUM"
 	fmt.Fprintf(tabw,
 		"%s \t %s \t %.2f \t %.2f \t %.2f%s \t %.2f \t %s \t %s \t %s \t %s \t %s \t %s %s\n",
@@ -271,11 +271,11 @@ func printCustomTable(stockArr []StockInfo, dataXls [][]string) {
 		totalMyPrice,
 		totalMyChangePercent, "%",
 		totalMyGains,
-		"--",
-		"--",
-		"--",
-		"--",
-		"--",
+		" --",
+		" --",
+		" --",
+		" --",
+		" --",
 		dateRequest.Format("02 Jan 15:04"),
 		setColor("", "default"),
 	)

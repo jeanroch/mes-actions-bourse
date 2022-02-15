@@ -6,12 +6,12 @@ import (
 	"os"
 )
 
-const version = "v0.2 2022-02-14"
+const version = "v0.2 2022-02-15"
 
 func main() {
 
 	var symbols string = "^FCHI,^SBF120,^GDAXI,^IXIC,^GSPC,BTC-USD,ETH-USD" // list of symbols separated by a comma , (set by from the cli)
-	var dataXls [][]string                                           // data from xls file if given from the cli
+	var dataXls [][]string                                                  // data from xls file if given from the cli
 
 	flagVersion := flag.Bool("ver", false, "Print version and exit\n")
 	flagIndice := flag.Bool("cac", false, "Get the values for few index and crypto: CAC40, SBF120, DAX, Nasdaq, S&P500, Bitcoin and Ethereum\n")
