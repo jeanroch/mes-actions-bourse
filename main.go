@@ -16,11 +16,11 @@ func main() {
 	var dataXls [][]string                                                            // data from xls file if given from the cli
 
 	flagVersion := flag.Bool("ver", false, "Print version and exit\n")
-	flagVerbose := flag.Bool("verb", false, "Print more verbose informations\n")
-	flagTest := flag.Bool("test", false, "Use the local URL, for dev/testing purpose\n")
-	flagIndice := flag.Bool("cac", false, "Get the values for few index and crypto: CAC40, SBF120, DAX, EuroStoxx50, Nasdaq, S&P500, Bitcoin and Ethereum\n")
+	flagVerbose := flag.Bool("verb", false, "Print more verbose informations from the application run\n")
+	flagTest := flag.Bool("test", false, "Use my local URL, for dev/testing purpose\n")
+	flagIndice := flag.Bool("cac", false, "Get the values for few selected index and crypto-money: CAC40, SBF120, DAX, EuroStoxx50, Nasdaq, S&P500, Bitcoin and Ethereum\n")
 	flagSymbols := flag.String("sym", "", "Need to provide a list of symbols separated by a comma, for example BTC-USD,BNP.PA,LI.PA,etc...\n")
-	flagXLS := flag.String("xls", "", "Need to provide an xlsx file with the stock options to request\nThe First row of the file must be column title from this 4: Symbol, Price (PRU), Quantity, Target\nIt need at least the column Symbol\n")
+	flagXLS := flag.String("xls", "", "Need to provide an xlsx file with the stock options to request\nThe First row of the file must be column title from this: Symbol, Price (PRU), Quantity, TargetSell, TargetBuy\nIt need at least the column Symbol\n")
 
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stdout, "\nThis small app is requesting some stock option values from the site finance.yahoo.com\n\n")
