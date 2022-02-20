@@ -3,18 +3,22 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io/ioutil"
+	"log"
 	"os"
 )
 
-const version = "v0.2 2022-02-15"
+const version = "v0.3 2022-02-20"
 
 func main() {
 
-	var symbols string = "^FCHI,^SBF120,^GDAXI,^IXIC,^GSPC,BTC-USD,ETH-USD" // list of symbols separated by a comma , (set by from the cli)
-	var dataXls [][]string                                                  // data from xls file if given from the cli
+	var symbols string = "^FCHI,^SBF120,^GDAXI,^STOXX50E,^IXIC,^GSPC,BTC-USD,ETH-USD" // list of symbols separated by a comma , (set by from the cli)
+	var dataXls [][]string                                                            // data from xls file if given from the cli
 
 	flagVersion := flag.Bool("ver", false, "Print version and exit\n")
-	flagIndice := flag.Bool("cac", false, "Get the values for few index and crypto: CAC40, SBF120, DAX, Nasdaq, S&P500, Bitcoin and Ethereum\n")
+	flagVerbose := flag.Bool("verb", false, "Print more verbose informations\n")
+	flagTest := flag.Bool("test", false, "Use the local URL, for dev/testing purpose\n")
+	flagIndice := flag.Bool("cac", false, "Get the values for few index and crypto: CAC40, SBF120, DAX, EuroStoxx50, Nasdaq, S&P500, Bitcoin and Ethereum\n")
 	flagSymbols := flag.String("sym", "", "Need to provide a list of symbols separated by a comma, for example BTC-USD,BNP.PA,LI.PA,etc...\n")
 	flagXLS := flag.String("xls", "", "Need to provide an xlsx file with the stock options to request\nThe First row of the file must be column title from this 4: Symbol, Price (PRU), Quantity, Target\nIt need at least the column Symbol\n")
 
@@ -24,13 +28,18 @@ func main() {
 	}
 	flag.Parse()
 
+	log.SetOutput(ioutil.Discard)
+	if *flagVerbose {
+		log.SetOutput(os.Stdout)
+	}
+
 	switch {
 	case *flagVersion:
 		fmt.Println("Version:", version)
 		os.Exit(0)
 
 	case *flagIndice:
-		symbols = "^FCHI,^SBF120,^GDAXI,^IXIC,^GSPC,BTC-USD,ETH-USD"
+		symbols = "^FCHI,^SBF120,^GDAXI,^STOXX50E,^IXIC,^GSPC,BTC-USD,ETH-USD"
 
 	case *flagSymbols != "":
 		symbols = *flagSymbols
@@ -38,13 +47,13 @@ func main() {
 	case *flagXLS != "":
 		sheet := "Sheet1"
 		// headers := []string{"symbol", "pru", "nombre", "objectif"}
-		headers := []string{"symbol", "price", "quantity", "target"}
+		headers := []string{"symbol", "price", "quantity", "targetSell", "targetBuy"}
 		symbols, dataXls = GetStockFromXLS(*flagXLS, sheet, headers)
 	}
 
 	fmt.Println("")
 
-	dataJson := GetDataFromURL(symbols)
+	dataJson := GetDataFromURL(symbols, *flagTest)
 	dataInternet := GetDataFromJSON(dataJson)
 
 	if len(dataXls) > 0 {

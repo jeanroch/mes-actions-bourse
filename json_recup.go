@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"time"
@@ -36,18 +37,22 @@ type StockInfo struct {
 	TwoHundredDayAverage       float64 `json:"twoHundredDayAverage"`
 }
 
-func GetDataFromURL(symbols string) []byte {
+func GetDataFromURL(symbols string, urlTest bool) []byte {
 
+	var urlTarget string
 	urlBase := "https://query2.finance.yahoo.com/v7/finance/quote?lang=en-US&region=FR&corsDomain=finance.yahoo.com"
 	urlFields := "symbol,longName,shortName,fiftyDayAverage,fiftyTwoWeekRange,regularMarketChange,regularMarketChangePercent,regularMarketDayRange,regularMarketPreviousClose,regularMarketPrice,regularMarketTime,twoHundredDayAverage"
-	urlTarget := urlBase + "&fields=" + urlFields + "&symbols=" + symbols
+	urlExternal := urlBase + "&fields=" + urlFields + "&symbols=" + symbols
 
-	//urlTarget := "http://nadev/bourse_resu.json"
-
-	/*
-		fmt.Println("Target URL requested", urlTarget)
-		fmt.Println("Symbols are", symbols)
-	*/
+	if urlTest {
+		urlTarget = "http://nadev/bourse_resu.json"
+		fmt.Printf("\n curl --silent \"%s\"\n", urlExternal)
+		fmt.Println("")
+		fmt.Println("====> TEST target URL requested:", urlTarget, " <====")
+		fmt.Println("")
+	} else {
+		urlTarget = urlExternal
+	}
 
 	myClient := http.Client{
 		Timeout: time.Second * 4, // timeout 3 sec

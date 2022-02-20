@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"strings"
 
@@ -11,9 +12,9 @@ import (
 // function GetStockFromXLS extract data from an xlsx
 func GetStockFromXLS(fileXls string, sheetName string, headerList []string) (string, [][]string) {
 
-	var symbolString string    // resturn a list of symbols separated by comma ',' ready for the request URL
+	var symbolString string    // return a list of symbols separated by comma ',' ready for the request URL
 	var resuTable [][]string   // result table to return
-	var columnList []int       // column id/number to use to fecth data from the xlsx
+	var columnList []int       // column id/number to use to fetch data from the xlsx
 	var rowCustom = []string{} // temporary array (like in one row) with the data to insert in the final result
 
 	xls, err := excelize.OpenFile(fileXls)
@@ -37,33 +38,31 @@ func GetStockFromXLS(fileXls string, sheetName string, headerList []string) (str
 					// if the header name is the same as the cell content
 					if strings.EqualFold(strings.ToLower(header), strings.ToLower(cell)) {
 						headerFound = true
-						//log.Println("Header present in the xlsx file:", header)
+						log.Printf("[INFO] xlsx import : Header present in the xlsx \t name: %s \t col: %d", header, position)
 						columnList = append(columnList, position)
 					}
 				}
 				// if header not found in the column name, print a warning, except if "symbol" as this one is mandatory
 				if !headerFound {
 					if strings.EqualFold(strings.ToLower(header), "symbol") {
-						fmt.Println("[ERROR] The header \"Symbol\" is missing in the file:", fileXls)
+						fmt.Println("[ERROR] xlsx import : The header \"Symbol\" is missing in the file:", fileXls)
 						os.Exit(1)
 					} else {
-						fmt.Println("[INFO] The header \"", header, "\" is missing in the file:", fileXls)
+						log.Println("[INFO] xlsx import : The header \"", header, "\" is missing in the file:", fileXls)
 					}
 				}
 			}
 
 		} else {
-			switch {
-			// if row size is at least same as the header list
-			case len(row) >= len(headerList):
-				for _, position := range columnList {
+			// insert the selected data in a row, to include in the result table
+			for _, position := range columnList {
+				if len(row) > position {
+					log.Printf("[INFO] xlsx import : Import data at row[%v]= %v", position, row[position])
 					rowCustom = append(rowCustom, row[position])
 				}
-			// if row size is lower than header list but there is at least one column, at least the symbol
-			case (len(row) > 0) && (len(row) < len(headerList)):
-				rowCustom = []string{row[0]}
 			}
 		}
+
 		// if our new temporary row is not empty, we can add it to the result
 		if len(rowCustom) > 0 {
 			// add the full row to the result table
@@ -81,6 +80,8 @@ func GetStockFromXLS(fileXls string, sheetName string, headerList []string) (str
 			symbolString = symbolString + "," + symb[0]
 		}
 	}
+
+	log.Println("[INFO] xlsx import : result table :", resuTable)
 
 	return symbolString, resuTable
 }
