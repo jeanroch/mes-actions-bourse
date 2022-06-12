@@ -74,10 +74,12 @@ func GetStockFromXLS(fileXls string, sheetName string, headerList []string) (str
 
 	// prepare the symbols list
 	for nb, symb := range resuTable {
-		if nb == 0 {
+		if nb == 0 || symbolString == "" {
 			symbolString = symb[0]
 		} else {
-			symbolString = symbolString + "," + symb[0]
+			if symb[0] != "" {
+				symbolString = symbolString + "," + symb[0]
+			}
 		}
 	}
 

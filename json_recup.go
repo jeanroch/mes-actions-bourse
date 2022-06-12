@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"time"
 )
@@ -43,6 +44,8 @@ func GetDataFromURL(symbols string, urlTest bool) []byte {
 	urlBase := "https://query2.finance.yahoo.com/v7/finance/quote?lang=en-US&region=FR&corsDomain=finance.yahoo.com"
 	urlFields := "symbol,longName,shortName,fiftyDayAverage,fiftyTwoWeekRange,regularMarketChange,regularMarketChangePercent,regularMarketDayRange,regularMarketPreviousClose,regularMarketPrice,regularMarketTime,twoHundredDayAverage"
 	urlExternal := urlBase + "&fields=" + urlFields + "&symbols=" + symbols
+
+	log.Printf("[INFO] URL requested : curl --silent \"%s\"\n", urlExternal)
 
 	if urlTest {
 		urlTarget = "http://nadev/bourse_resu.json"
