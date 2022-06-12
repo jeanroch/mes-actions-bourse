@@ -8,7 +8,7 @@ import (
 	"os"
 )
 
-const version = "v0.3 2022-06-12"
+const version = "v0.4 2022-06-13"
 
 func main() {
 

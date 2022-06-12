@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	// "github.com/fatih/color"
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/jedib0t/go-pretty/v6/text"
 	"golang.org/x/text/language"
@@ -105,6 +106,11 @@ func printCustomTable(stockArr []StockInfo, dataXls [][]string) {
 
 	fr := message.NewPrinter(language.French)
 
+	//yellow := color.New(color.FgYellow).SprintFunc()
+	//yellowBold := color.New(color.BgYellow).SprintFunc()
+	//red := color.New(color.FgRed).SprintFunc()
+	//redBold := color.New(color.BgRed).SprintFunc()
+
 	myPrice := 0.0
 	mySum := 0.0
 	myQuantity := 0.0
@@ -115,23 +121,33 @@ func printCustomTable(stockArr []StockInfo, dataXls [][]string) {
 	myTargetBuy := 0.0
 	myTargetBuyDiff := 0.0
 
+	myPriceTab := "--"
+	mySumTab := "--"
+	myGainsTab := "--"
+	myChangePercentTab := "--"
+	myTargetSellDiffTab := "--"
+	myTargetBuyDiffTab := "--"
+
 	totalPrice := 0.0
 	totalMySum := 0.0
 	totalMyGains := 0.0
 	totalMyPrice := 0.0
 	totalMyChangePercent := 0.0
 
+	dayChangeTotal := 0.0
+	dayChangeTab := ""
+
 	var xlsInfoPresent bool
 	var err error
 	var symbol string
 
 	dateRequest := time.Now()
-	fmt.Println("Date request:", dateRequest.Format("02 Jan 2006 15:04"))
+	//fmt.Println("Date request:", dateRequest.Format("02 Jan 2006 15:04"))
 
 	// Init the table
 	resuTable := table.NewWriter()
 
-	// Set table parameters
+	// Set table parameters and style
 	resuTable.Style().Options.DrawBorder = false
 	resuTable.Style().Options.SeparateColumns = false
 	resuTable.Style().Options.SeparateFooter = false
@@ -139,8 +155,7 @@ func printCustomTable(stockArr []StockInfo, dataXls [][]string) {
 	resuTable.Style().Options.SeparateRows = false
 
 	//resuTable.SetStyle(table.StyleLight) // style avec bordure "fine", ce parametre écrase les  Style().Options.XXX
-	//tw.SetCaption("Table using the style 'StyleLight'.\n")
-	//tw.SetStyle(table.StyleColoredBright)
+	//resuTable.SetCaption("Table using the style 'StyleLight'.\n")
 
 	// define a variable for each column name
 	headerSymbol := "Symbol"
@@ -156,18 +171,10 @@ func printCustomTable(stockArr []StockInfo, dataXls [][]string) {
 	headerMySum := "MySum"
 	headerMyTargetSellDiff := "MyTargetSell"
 	headerMyTargetBuyDiff := "MyTargetBuy"
-	/*
-		headerLongName := "LongName"
-		headerRegularMarketChange := "Diff"
-		headerFiftyTwoWeekHigh := "52WeekHigh"
-		headerFiftyTwoWeekLow := "52WeekLow"
-		headerRegularMarketDayHigh := "DayHigh"
-		headerRegularMarketDayLow := "DayLow"
-		headerRegularMarketPreviousClose := "PrevClose"
-	*/
 
 	// set the table header
-	rowHeader := table.Row{setColor(headerSymbol, "yellow"),
+	rowHeader := table.Row{
+		setColor(headerSymbol, "yellow"),
 		headerShortName,
 		text.AlignRight.Apply(headerRegularMarketPrice, 12),
 		text.AlignRight.Apply(headerMyPrice, 12),
@@ -179,7 +186,7 @@ func printCustomTable(stockArr []StockInfo, dataXls [][]string) {
 		text.AlignRight.Apply(headerRegularMarketChangePercent, 10),
 		text.AlignRight.Apply(headerTwoHundredDayAverage, 11),
 		text.AlignRight.Apply(headerFiftyDayAverage, 11),
-		headerRegularMarketTime,
+		headerRegularMarketTime + setColor("", "default"),
 	}
 	//resuTable.AppendHeader(rowHeader)
 	resuTable.AppendRow(rowHeader)
@@ -198,6 +205,13 @@ func printCustomTable(stockArr []StockInfo, dataXls [][]string) {
 		myTargetBuy = 0.0
 		myTargetBuyDiff = 0.0
 
+		myPriceTab = "--"
+		mySumTab = "--"
+		myGainsTab = "--"
+		myChangePercentTab = "--"
+		myTargetSellDiffTab = "--"
+		myTargetBuyDiffTab = "--"
+
 		// search for the xls stock info
 		xlsInfoPresent = false
 		for _, xlsRow := range dataXls {
@@ -206,7 +220,7 @@ func printCustomTable(stockArr []StockInfo, dataXls [][]string) {
 				xlsInfoPresent = true
 				log.Println(val.Symbol, ": symbol is present in xlsx, row size is:", len(xlsRow))
 				if len(xlsRow) == 1 {
-					log.Println(val.Symbol, ": symbol is alone, all myVariables are set to zero")
+					log.Println(val.Symbol, ": symbol is alone, all myVariables are set to zero, and myVariablesTab set to --")
 					myPrice = 0.0
 					mySum = 0.0
 					myQuantity = 0.0
@@ -216,6 +230,13 @@ func printCustomTable(stockArr []StockInfo, dataXls [][]string) {
 					myTargetSellDiff = 0.0
 					myTargetBuy = 0.0
 					myTargetBuyDiff = 0.0
+
+					myPriceTab = "--"
+					mySumTab = "--"
+					myGainsTab = "--"
+					myChangePercentTab = "--"
+					myTargetSellDiffTab = "--"
+					myTargetBuyDiffTab = "--"
 				}
 				if len(xlsRow) > 1 {
 					if xlsRow[1] != "" {
@@ -224,7 +245,8 @@ func printCustomTable(stockArr []StockInfo, dataXls [][]string) {
 						checkErr(err)
 					} else {
 						myPrice = 0.0
-						log.Println(val.Symbol, ": myPrice is set to zero, the value of xlsRow[1] is:", xlsRow[1])
+						myPriceTab = "--"
+						log.Println(val.Symbol, ": myPrice is set to zero and myPriceTab to --, the value of xlsRow[1] is:", xlsRow[1])
 					}
 				}
 				if len(xlsRow) > 2 {
@@ -274,8 +296,27 @@ func printCustomTable(stockArr []StockInfo, dataXls [][]string) {
 				totalMySum = totalMyPrice
 				totalMyGains = totalMyGains + myGains
 
+				dayChangeTotal = (dayChangeTotal + ((val.RegularMarketChangePercent * mySum) / 100.0))
+
+				myPriceTab = fr.Sprintf("%.2f", myPrice)
+				mySumTab = fr.Sprintf("%.2f", mySum)
+				myChangePercentTab = fr.Sprintf("%.2f %%", myChangePercent)
+				myGainsTab = fr.Sprintf("%.2f", myGains)
+
 				if myTargetSell > 0 {
+					log.Println(val.Symbol, ": targetSell is processed from the xlsx")
 					myTargetSellDiff = ((val.RegularMarketPrice - myTargetSell) / val.RegularMarketPrice) * 100
+					myTargetSellDiffTab = fr.Sprintf("%.2f %%", myTargetSellDiff)
+				} else {
+					myTargetSellDiffTab = "--"
+				}
+
+				if myTargetBuy > 0 {
+					log.Println(val.Symbol, ": targetBuy is processed from the xlsx")
+					myTargetBuyDiff = ((myTargetBuy - val.RegularMarketPrice) / val.RegularMarketPrice) * 100
+					myTargetBuyDiffTab = fr.Sprintf("%.2f %%", myTargetBuyDiff)
+				} else {
+					myTargetSellDiffTab = "--"
 				}
 
 				// set the row color when myPrice and myQuantity are set
@@ -298,17 +339,9 @@ func printCustomTable(stockArr []StockInfo, dataXls [][]string) {
 					symbol = setColor(val.Symbol, "greenbold")
 					log.Println(val.Symbol, ": price is higher than myTargetSell, line color set to green bold")
 				}
-
-			} else if myTargetBuy > 0 {
-				log.Println(val.Symbol, ": only targetBuy is processed from the xlsx")
-				myTargetBuyDiff = ((myTargetBuy - val.RegularMarketPrice) / val.RegularMarketPrice) * 100
-
 				if myTargetBuy > 0 && myTargetBuyDiff >= 0.0 {
 					symbol = setColor(val.Symbol, "greenbold")
 					log.Println(val.Symbol, ": price is below myTargetBuy, line color set to green bold")
-				} else {
-					symbol = setColor(val.Symbol, "default")
-					log.Println(val.Symbol, ": price is still too high for myTargetBuy, line color set to default")
 				}
 			} else {
 				// if there is only symbol in the xlsx (without myPrice, etc...), color is set from default -> on the dayChange
@@ -327,7 +360,7 @@ func printCustomTable(stockArr []StockInfo, dataXls [][]string) {
 				}
 			}
 
-			// if the DayChange is lower than -4%, it override previous colors
+			// if the DayChange is lower than -4%, it override previous colors to red bold
 			if val.RegularMarketChangePercent <= -4.0 {
 				symbol = setColor(val.Symbol, "redbold")
 				log.Println(val.Symbol, ": RegularMarketChangePercent is less than -4%, line color set to red bold")
@@ -343,6 +376,12 @@ func printCustomTable(stockArr []StockInfo, dataXls [][]string) {
 			myTargetSellDiff = 0.0
 			myTargetBuy = 0.0
 			myTargetBuyDiff = 0.0
+			myPriceTab = "--"
+			mySumTab = "--"
+			myGainsTab = "--"
+			myChangePercentTab = "--"
+			myTargetSellDiffTab = "--"
+			myTargetBuyDiffTab = "--"
 
 			switch {
 			case val.RegularMarketChange < 0:
@@ -359,6 +398,16 @@ func printCustomTable(stockArr []StockInfo, dataXls [][]string) {
 			}
 		}
 
+		// change just the color of dayChange
+		/*
+			if val.RegularMarketChangePercent < 0.0 {
+				dayChangeTab = redBold(fr.Sprintf("%.2f %%", val.RegularMarketChangePercent))
+			} else {
+				dayChangeTab = fr.Sprintf("%.2f %%", val.RegularMarketChangePercent)
+			}
+		*/
+		dayChangeTab = fr.Sprintf("%.2f %%", val.RegularMarketChangePercent)
+
 		name := reduceName(val.ShortName)
 		dateInfo := time.Unix(int64(val.RegularMarketTime), 0)
 
@@ -367,25 +416,26 @@ func printCustomTable(stockArr []StockInfo, dataXls [][]string) {
 			symbol,
 			name,
 			text.AlignRight.Apply(fr.Sprintf("%.2f", val.RegularMarketPrice), 12),
-			text.AlignRight.Apply(fr.Sprintf("%.2f", myPrice), 12),
-			text.AlignRight.Apply(fr.Sprintf("%.2f", mySum), 12),
-			text.AlignRight.Apply(fr.Sprintf("%.2f %%", myChangePercent), 10),
-			text.AlignRight.Apply(fr.Sprintf("%.2f", myGains), 12),
-			text.AlignRight.Apply(fr.Sprintf("%.2f %%", myTargetSellDiff), 10),
-			text.AlignRight.Apply(fr.Sprintf("%.2f %%", myTargetBuyDiff), 10),
-			text.AlignRight.Apply(fr.Sprintf("%.2f %%", val.RegularMarketChangePercent), 10),
+			text.AlignRight.Apply(myPriceTab, 12),
+			text.AlignRight.Apply(mySumTab, 12),
+			text.AlignRight.Apply(myChangePercentTab, 10),
+			text.AlignRight.Apply(myGainsTab, 12),
+			text.AlignRight.Apply(myTargetSellDiffTab, 10),
+			text.AlignRight.Apply(myTargetBuyDiffTab, 10),
+			text.AlignRight.Apply(dayChangeTab, 10),
 			text.AlignRight.Apply(fr.Sprintf("%.2f", val.TwoHundredDayAverage), 11),
 			text.AlignRight.Apply(fr.Sprintf("%.2f", val.FiftyDayAverage), 11),
-			dateInfo.Format("02 Jan 15:04"),
-			setColor("", "default"),
+			dateInfo.Format("02 Jan 15:04") + setColor("", "default"),
 		}
 		resuTable.AppendRow(tableRow)
 	}
 
 	// print total footer row
-	totalMyChangePercent = (totalMyGains / totalMyPrice) * 100
+	totalMyChangePercent = (totalMyGains / totalMyPrice) * 100.0
 	symbol = setColor("--", "yellow")
 	name := "TOTAL SUM"
+
+	dayChangeTotalTab := ((dayChangeTotal / totalMyPrice) * 100.0)
 
 	// create the footer row with the totals values
 	rowFooter := table.Row{
@@ -398,11 +448,10 @@ func printCustomTable(stockArr []StockInfo, dataXls [][]string) {
 		text.AlignRight.Apply(fr.Sprintf("%.2f", totalMyGains), 12),
 		text.AlignRight.Apply("--", 10),
 		text.AlignRight.Apply("--", 10),
-		text.AlignRight.Apply("--", 10),
+		text.AlignRight.Apply(fr.Sprintf("%.2f %%", dayChangeTotalTab), 10),
 		text.AlignRight.Apply("--", 11),
 		text.AlignRight.Apply("--", 11),
-		dateRequest.Format("02 Jan 15:04"),
-		setColor("", "default"),
+		dateRequest.Format("02 Jan 15:04") + setColor("", "default"),
 	}
 	//resuTable.AppendFooter(rowFooter)
 	resuTable.AppendRow(rowFooter)
@@ -433,8 +482,8 @@ func printDefaultTable(stockArr []StockInfo) {
 	resuTable.Style().Options.SeparateRows = false
 
 	//resuTable.SetStyle(table.StyleLight) // style avec bordure "fine", ce parametre écrase les  Style().Options.XXX
-	//tw.SetCaption("Table using the style 'StyleLight'.\n")
-	//tw.SetStyle(table.StyleColoredBright)
+	//resuTable.SetCaption("Table using the style 'StyleLight'.\n")
+	//resuTable.SetStyle(table.StyleColoredBright)
 
 	// define a variable for each column name
 	//headerLongName := "LongName"
@@ -464,7 +513,7 @@ func printDefaultTable(stockArr []StockInfo) {
 		text.AlignRight.Apply(headerFiftyDayAverage, 11),
 		text.AlignRight.Apply(headerFiftyTwoWeekLow, 11),
 		text.AlignRight.Apply(headerFiftyTwoWeekHigh, 11),
-		headerRegularMarketTime,
+		headerRegularMarketTime + setColor("", "default"),
 	}
 	//resuTable.AppendHeader(rowheader)
 	resuTable.AppendRow(rowheader)
@@ -508,8 +557,7 @@ func printDefaultTable(stockArr []StockInfo) {
 			text.AlignRight.Apply(fr.Sprintf("%.2f", val.FiftyDayAverage), 11),
 			text.AlignRight.Apply(fr.Sprintf("%.2f", val.FiftyTwoWeekLow), 11),
 			text.AlignRight.Apply(fr.Sprintf("%.2f", val.FiftyTwoWeekHigh), 11),
-			dateInfo.Format("02 Jan 15:04"),
-			setColor("", "default"),
+			dateInfo.Format("02 Jan 15:04") + setColor("", "default"),
 		}
 		resuTable.AppendRow(tableRow)
 	}
