@@ -134,7 +134,8 @@ func printCustomTable(stockArr []StockInfo, dataXls [][]string) {
 	totalMyPrice := 0.0
 	totalMyChangePercent := 0.0
 
-	dayChangeTotal := 0.0
+	totalDayChangeDiff := 0.0
+	yesterdayTotal := 0.0
 	dayChangeTab := ""
 
 	var xlsInfoPresent bool
@@ -241,7 +242,8 @@ func printCustomTable(stockArr []StockInfo, dataXls [][]string) {
 				if len(xlsRow) > 1 {
 					if xlsRow[1] != "" {
 						myPrice, err = strconv.ParseFloat(xlsRow[1], 64)
-						log.Println(val.Symbol, ": myPrice set to:", myPrice)
+						log.Printf("%s : myPrice set to: %.4f", val.Symbol, myPrice)
+						//log.Println(val.Symbol, ": myPrice set to:", myPrice)
 						checkErr(err)
 					} else {
 						myPrice = 0.0
@@ -290,13 +292,20 @@ func printCustomTable(stockArr []StockInfo, dataXls [][]string) {
 				mySum = myPrice * myQuantity
 				myChangePercent = ((val.RegularMarketPrice - myPrice) / myPrice) * 100
 				myGains = (val.RegularMarketPrice - myPrice) * myQuantity
+				mySumToday := val.RegularMarketPrice * myQuantity
+				mySumYesterday := val.RegularMarketPreviousClose * myQuantity
 
 				totalPrice = totalPrice + (val.RegularMarketPrice * myQuantity)
 				totalMyPrice = totalMyPrice + (myPrice * myQuantity)
 				totalMySum = totalMyPrice
 				totalMyGains = totalMyGains + myGains
 
-				dayChangeTotal = (dayChangeTotal + ((val.RegularMarketChangePercent * mySum) / 100.0))
+				yesterdayTotal = yesterdayTotal + mySumYesterday
+				dayChangeDiff := mySumToday - mySumYesterday
+				totalDayChangeDiff = totalDayChangeDiff + dayChangeDiff
+				log.Printf("%s : price yesterday=  %.3f , price today=  %.3f", val.Symbol, val.RegularMarketPreviousClose, val.RegularMarketPrice)
+				log.Printf("%s : mySum yesterday= %.3f , mySum today= %.3f , day change diff= %.3f , totalDayChangeDiff= %.3f",
+					val.Symbol, mySumYesterday, mySumToday, dayChangeDiff, totalDayChangeDiff)
 
 				myPriceTab = fr.Sprintf("%.2f", myPrice)
 				mySumTab = fr.Sprintf("%.2f", mySum)
@@ -438,7 +447,9 @@ func printCustomTable(stockArr []StockInfo, dataXls [][]string) {
 	symbol = setColor("--", "yellow")
 	name := "TOTAL SUM"
 
-	dayChangeTotalTab := ((dayChangeTotal / totalMyPrice) * 100.0)
+	todayDiff := totalPrice - yesterdayTotal
+	log.Printf("TOTAL SUM : yesterdayTotal= %.2f , todayDiff= %.2f , totalDayChangeDiff= %.2f", yesterdayTotal, todayDiff, totalDayChangeDiff)
+	totalDayChange := ((todayDiff / yesterdayTotal) * 100.0)
 
 	// create the footer row with the totals values
 	rowFooter := table.Row{
@@ -451,7 +462,7 @@ func printCustomTable(stockArr []StockInfo, dataXls [][]string) {
 		text.AlignRight.Apply(fr.Sprintf("%.2f", totalMyGains), 12),
 		text.AlignRight.Apply("--", 10),
 		text.AlignRight.Apply("--", 10),
-		text.AlignRight.Apply(fr.Sprintf("%.2f %%", dayChangeTotalTab), 10),
+		text.AlignRight.Apply(fr.Sprintf("%.2f %%", totalDayChange), 10),
 		text.AlignRight.Apply("--", 11),
 		text.AlignRight.Apply("--", 11),
 		dateRequest.Format("02 Jan 15:04") + setColor("", "default"),

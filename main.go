@@ -8,7 +8,14 @@ import (
 	"os"
 )
 
-const version = "v0.4 2022-06-13"
+/*
+	Version is filled during compilation with
+		VERSION="$(git tag -l | tail -1)_$(date +%F)"
+		VERSION="$(git tag -l | tail -1)_$(git log --pretty=format:"%ad" -n 1 --date=format:%F)"
+		go build -ldflags "-X main.version=$VERSION"
+	const version = "v0.4 2022-06-13"
+*/
+var version string = ""
 
 func main() {
 
