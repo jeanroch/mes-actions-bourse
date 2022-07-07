@@ -303,8 +303,8 @@ func printCustomTable(stockArr []StockInfo, dataXls [][]string) {
 				yesterdayTotal = yesterdayTotal + mySumYesterday
 				dayChangeDiff := mySumToday - mySumYesterday
 				totalDayChangeDiff = totalDayChangeDiff + dayChangeDiff
-				log.Printf("%s : price yesterday=  %.3f , price today=  %.3f", val.Symbol, val.RegularMarketPreviousClose, val.RegularMarketPrice)
-				log.Printf("%s : mySum yesterday= %.3f , mySum today= %.3f , day change diff= %.3f , totalDayChangeDiff= %.3f",
+				log.Printf("%s : price yesterday=%.3f , price today=%.3f", val.Symbol, val.RegularMarketPreviousClose, val.RegularMarketPrice)
+				log.Printf("%s : mySum yesterday=%.3f , mySum today=%.3f , day change diff=%.3f , totalDayChangeDiff=%.3f",
 					val.Symbol, mySumYesterday, mySumToday, dayChangeDiff, totalDayChangeDiff)
 
 				myPriceTab = fr.Sprintf("%.2f", myPrice)
@@ -312,10 +312,11 @@ func printCustomTable(stockArr []StockInfo, dataXls [][]string) {
 				myChangePercentTab = fr.Sprintf("%.2f %%", myChangePercent)
 				myGainsTab = fr.Sprintf("%.2f", myGains)
 
-				if myTargetSell > 0 {
-					log.Println(val.Symbol, ": targetSell is processed from the xlsx")
+				if myTargetSell > 0.0 {
+					log.Printf("%s : targetSell=%.2f is processed from the xlsx", val.Symbol, myTargetSell)
 					myTargetSellDiff = ((val.RegularMarketPrice - myTargetSell) / val.RegularMarketPrice) * 100
 					myTargetSellDiffTab = fr.Sprintf("%.2f %%", myTargetSellDiff)
+					log.Printf("%s : myTargetSellDiff=%.2f , myTargetSellDiffTab=%s", val.Symbol, myTargetSellDiff, myTargetSellDiffTab)
 				} else {
 					myTargetSellDiffTab = "--"
 				}
@@ -324,21 +325,21 @@ func printCustomTable(stockArr []StockInfo, dataXls [][]string) {
 				switch {
 				case myGains < 0.0:
 					symbol = setColor(val.Symbol, "red")
-					log.Println(val.Symbol, ": myGains are negative, line color set to red")
+					log.Printf("%s : myGains=%.2f are negative, line color set to red", val.Symbol, myGains)
 				case myGains == 0.0:
 					symbol = setColor(val.Symbol, "default")
-					log.Println(val.Symbol, ": myGains are equal to 0, line color set to default")
+					log.Printf("%s : myGains=%.2f are equal to 0, line color set to default", val.Symbol, myGains)
 				case myGains > 0.0:
 					symbol = setColor(val.Symbol, "green")
-					log.Println(val.Symbol, ": myGains are positive, line color set to green")
+					log.Printf("%s : myGains=%.2f are positive, line color set to green", val.Symbol, myGains)
 				}
 				if myChangePercent <= -10.0 {
 					symbol = setColor(val.Symbol, "redbold")
-					log.Println(val.Symbol, ": myChangePercent is less than -10%, line color set to red bold")
+					log.Printf("%s : myChangePercent=%.2f is less than -10%%, line color set to red bold", val.Symbol, myChangePercent)
 				}
 				if myTargetSell > 0 && myTargetSellDiff >= 0.0 {
 					symbol = setColor(val.Symbol, "greenbold")
-					log.Println(val.Symbol, ": price is higher than myTargetSell, line color set to green bold")
+					log.Printf("%s : price=%.2f is higher than myTargetSell=%.2f, line color set to green bold", val.Symbol, val.RegularMarketPrice, myTargetSell)
 				}
 			} else {
 				// if there is only symbol in the xlsx (without myPrice, etc...), color is set from default -> on the dayChange
@@ -396,18 +397,20 @@ func printCustomTable(stockArr []StockInfo, dataXls [][]string) {
 		}
 
 		// process the target for buying
-		if myTargetBuy > 0 {
+		if myTargetBuy > 0.0 {
 			log.Println(val.Symbol, ": targetBuy is processed from the xlsx")
 			myTargetBuyDiff = ((myTargetBuy - val.RegularMarketPrice) / val.RegularMarketPrice) * 100
 			myTargetBuyDiffTab = fr.Sprintf("%.2f %%", myTargetBuyDiff)
+			log.Printf("%s : myTargetBuyDiff=%.2f , myTargetBuyDiffTab=%s", val.Symbol, myTargetBuyDiff, myTargetBuyDiffTab)
+			// log.Printf("%s : ", val.Symbol, )
 
 			// if the price is lower than the target to buy, override colors to green bold
 			if myTargetBuyDiff >= 0.0 {
 				symbol = setColor(val.Symbol, "greenbold")
-				log.Println(val.Symbol, ": price is below myTargetBuy, line color set to green bold")
+				log.Printf("%s : price=%.2f is below myTargetBuy=%.2f, line color set to green bold", val.Symbol, val.RegularMarketPrice, myTargetBuy)
 			}
 		} else {
-			myTargetSellDiffTab = "--"
+			myTargetBuyDiffTab = "--"
 		}
 
 		// change just the color of dayChange
