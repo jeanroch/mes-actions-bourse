@@ -3,17 +3,19 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 )
 
 /*
-	Version is filled during compilation with
-		VERSION="$(git tag -l | tail -1)_$(date +%F)"
-		VERSION="$(git tag -l | tail -1)_$(git log --pretty=format:"%ad" -n 1 --date=format:%F)"
-		go build -ldflags "-X main.version=$VERSION"
-	const version = "v0.4 2022-06-13"
+Version is filled during compilation with
+
+	VERSION="$(git tag -l | tail -1)_$(date +%F)"
+	VERSION="$(git tag -l | tail -1)_$(git log --pretty=format:"%ad" -n 1 --date=format:%F)"
+	go build -ldflags "-X main.version=$VERSION"
+
+const version = "v0.4 2022-06-13"
 */
 var version string = ""
 
@@ -28,6 +30,7 @@ func main() {
 	flagIndice := flag.Bool("cac", false, "Get the values for few selected index and crypto-money: CAC40, SBF120, DAX, EuroStoxx50, Nasdaq, S&P500, Bitcoin and Ethereum\n")
 	flagSymbols := flag.String("sym", "", "Need to provide a list of symbols separated by a comma, for example BTC-USD,BNP.PA,LI.PA,etc...\n")
 	flagXLS := flag.String("xls", "", "Need to provide an xlsx file with the stock options to request\nThe First row of the file must be column title from this: Symbol, Price (PRU), Quantity, TargetSell, TargetBuy\nIt need at least the column Symbol\n")
+	flagApiVer := flag.Int("apiver", 6, "API version to request on Yahoo webserver")
 
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stdout, "\nThis small app is requesting some stock option values from the site finance.yahoo.com\n\n")
@@ -35,9 +38,14 @@ func main() {
 	}
 	flag.Parse()
 
-	log.SetOutput(ioutil.Discard)
+	log.SetOutput(io.Discard)
 	if *flagVerbose {
 		log.SetOutput(os.Stdout)
+	}
+
+	if *flagApiVer < 1 || *flagApiVer > 10 {
+		fmt.Println("Yahoo API version must be between 1 and 10")
+		os.Exit(1)
 	}
 
 	switch {
@@ -60,7 +68,7 @@ func main() {
 
 	fmt.Println("")
 
-	dataJson := GetDataFromURL(symbols, *flagTest)
+	dataJson := GetDataFromURL(symbols, *flagTest, *flagApiVer)
 	dataInternet := GetDataFromJSON(dataJson)
 
 	if len(dataXls) > 0 {

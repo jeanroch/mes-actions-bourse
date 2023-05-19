@@ -3,9 +3,10 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -38,12 +39,15 @@ type StockInfo struct {
 	TwoHundredDayAverage       float64 `json:"twoHundredDayAverage"`
 }
 
-func GetDataFromURL(symbols string, urlTest bool) []byte {
+func GetDataFromURL(symbols string, urlTest bool, apiVer int) []byte {
+
+	yahooVer := "v" + strconv.Itoa(apiVer)
 
 	var urlTarget string
-	urlBase := "https://query2.finance.yahoo.com/v7/finance/quote?lang=en-US&region=FR&corsDomain=finance.yahoo.com"
-	urlFields := "symbol,longName,shortName,fiftyDayAverage,fiftyTwoWeekRange,regularMarketChange,regularMarketChangePercent,regularMarketDayRange,regularMarketPreviousClose,regularMarketPrice,regularMarketTime,twoHundredDayAverage"
-	urlExternal := urlBase + "&fields=" + urlFields + "&symbols=" + symbols
+	urlBase := "https://query2.finance.yahoo.com/"
+	urlFields1 := "/finance/quote?lang=en-US&region=FR&corsDomain=finance.yahoo.com"
+	urlFields2 := "symbol,longName,shortName,fiftyDayAverage,fiftyTwoWeekRange,regularMarketChange,regularMarketChangePercent,regularMarketDayRange,regularMarketPreviousClose,regularMarketPrice,regularMarketTime,twoHundredDayAverage"
+	urlExternal := urlBase + yahooVer + urlFields1 + "&fields=" + urlFields2 + "&symbols=" + symbols
 
 	log.Printf("[INFO] URL requested : curl --silent \"%s\"\n", urlExternal)
 
@@ -68,7 +72,7 @@ func GetDataFromURL(symbols string, urlTest bool) []byte {
 	resu, err := myClient.Do(request)
 	checkErr(err)
 	defer resu.Body.Close()
-	httpBody, err := ioutil.ReadAll(resu.Body)
+	httpBody, err := io.ReadAll(resu.Body)
 	checkErr(err)
 
 	return httpBody
