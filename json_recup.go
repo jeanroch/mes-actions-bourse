@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 )
@@ -15,10 +16,24 @@ type jsonQuoteResponse struct {
 	QuoteResponse jsonResult `json:"quoteResponse"`
 }
 
-// inside quoteResponse there is one field result
+// in 2023 the json root was renamed to finance
+// and could only get this :
+// {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Cookie"}}}
+type jsonRootFinance struct {
+	RootFinance jsonResult `json:"finance"`
+}
+
+// inside quoteResponse there is one field result (and also error)
 // made of an array of information for each symbol/stock requested
 type jsonResult struct {
-	Result []StockInfo `json:"result"`
+	Result      []StockInfo `json:"result"`
+	ResultError ErrorBlock  `json:"error"`
+}
+
+// the error returned by the response
+type ErrorBlock struct {
+	Code        string `json:"code"`
+	Description string `json:"description"`
 }
 
 // all the information from the symbol/stock
@@ -52,17 +67,18 @@ func GetDataFromURL(symbols string, urlTest bool, apiVer int) []byte {
 	log.Printf("[INFO] URL requested : curl --silent \"%s\"\n", urlExternal)
 
 	if urlTest {
-		urlTarget = "http://nadev/bourse_resu.json"
+		urlTarget = "http://ludev/bourse_resu_error.json"
+		//urlTarget = "http://ludev/bourse_resu.json"
 		fmt.Printf("\n curl --silent \"%s\"\n", urlExternal)
 		fmt.Println("")
-		fmt.Println("====> TEST target URL requested:", urlTarget, " <====")
+		fmt.Println("====> TEST target URL requested:", urlTarget)
 		fmt.Println("")
 	} else {
 		urlTarget = urlExternal
 	}
 
 	myClient := http.Client{
-		Timeout: time.Second * 4, // timeout 3 sec
+		Timeout: time.Second * 4, // timeout 4 sec
 	}
 
 	request, err := http.NewRequest(http.MethodGet, urlTarget, nil)
@@ -75,19 +91,42 @@ func GetDataFromURL(symbols string, urlTest bool, apiVer int) []byte {
 	httpBody, err := io.ReadAll(resu.Body)
 	checkErr(err)
 
+	log.Println("httpBody returned from web server :", string(httpBody))
+
 	return httpBody
 }
 
 func GetDataFromJSON(dataJSON []byte) []StockInfo {
 
-	var quoteRes jsonQuoteResponse
-	err := json.Unmarshal(dataJSON, &quoteRes)
+	// check the new json returned, since May 2023
+	var dataFinance jsonRootFinance
+	err := json.Unmarshal(dataJSON, &dataFinance)
 	checkErr(err)
+
+	log.Println("Error Code :", dataFinance.RootFinance.ResultError.Code)
+	log.Println("Error Description :", dataFinance.RootFinance.ResultError.Description)
+
+	if dataFinance.RootFinance.ResultError.Code != "" {
+		fmt.Println("Returned error from Yahoo : ",
+			dataFinance.RootFinance.ResultError.Code,
+			"/",
+			dataFinance.RootFinance.ResultError.Description)
+		fmt.Println("Exit Program")
+		os.Exit(2)
+	}
+
+	// This is the old response that we used to get before May 2023
+	var quoteRes jsonQuoteResponse
+	err = json.Unmarshal(dataJSON, &quoteRes)
+	checkErr(err)
+
+	log.Println("Struct unmarshal from web server :", quoteRes)
 
 	var stockArr []StockInfo
 	for _, val := range quoteRes.QuoteResponse.Result {
 		stock := val
 		stockArr = append(stockArr, stock)
 	}
+
 	return stockArr
 }
